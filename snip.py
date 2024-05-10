@@ -20,7 +20,7 @@ def test(file_no_ext: str) -> bool:
 
 def contents(rust_file: str) -> str:
     f = open(rust_file)
-    raw = f.readlines()
+    raw = ["// " + x if x.startswith("use super::") else x for x in f.readlines()]
     contents = "".join(raw).replace("$", "\\$").replace("    ", "\t")
     return contents
 
