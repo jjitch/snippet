@@ -1,14 +1,20 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub mod algebraic;
+pub mod arg_cmp;
+pub mod binary_search;
+pub mod bit_field;
+pub mod compress_crd;
+pub mod factorization;
+pub mod factors;
+pub mod fenwick_tree;
+pub mod indexer;
+pub mod iter_extent;
+pub mod lazy_segtree;
+pub mod linear;
+pub mod max_flow;
+pub mod modint;
+pub mod potential_union_find;
+pub mod scanner;
+pub mod scc;
+pub mod segment_tree;
+pub mod union_find;
+pub mod vc;
