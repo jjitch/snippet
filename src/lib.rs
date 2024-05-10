@@ -9,7 +9,6 @@ pub mod fenwick_tree;
 pub mod indexer;
 pub mod iter_extent;
 pub mod lazy_segtree;
-pub mod linear;
 pub mod max_flow;
 pub mod modint;
 pub mod potential_union_find;
