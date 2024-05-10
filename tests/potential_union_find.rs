@@ -1,32 +1,16 @@
-use snippet::potential_union_find::*;
-
-#[test]
-fn s() {
-    let s = r#"5 6
-0 0 2 5
-0 1 2 3
-1 0 1
-1 1 3
-0 1 4 8
-1 0 4
-    "#;
-    let mut puf = PotentialUnionFind::new::<Add>(3);
-    puf.merge::<Add>(0, 2, &5);
-}
-
-struct Add;
-
-impl Monoid<i64> for Add {
-    fn apply(x: &i64, y: &i64) -> i64 {
-        *x + *y
-    }
-    fn identity() -> i64 {
-        0
-    }
-}
-
-impl Group<i64> for Add {
-    fn inv(x: &i64) -> i64 {
-        -(*x)
+#[cfg(test)]
+mod potential_union_find_test {
+    use snippet::{algebraic::*, potential_union_find::*};
+    #[test]
+    fn aoj() {
+        let mut puf = PotentialUnionFind::<_, mount::Add>::new(5);
+        puf.merge(0, 2, &5);
+        println!("{:?}", puf);
+        puf.merge(1, 2, &3);
+        println!("{:?}", puf);
+        assert_eq!(puf.diff(0, 1), Diff::Ok(2));
+        assert_eq!(puf.diff(1, 3), Diff::Ambiguous);
+        puf.merge(1, 4, &8);
+        assert_eq!(puf.diff(0, 4), Diff::Ok(10));
     }
 }

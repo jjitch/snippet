@@ -1,41 +1,77 @@
-pub trait Monoid<Element> {
-    fn apply(x: &Element, y: &Element) -> Element;
-    fn identity() -> Element;
-}
-pub trait Group<Element>: Monoid<Element> {
-    fn inv(x: &Element) -> Element;
-}
-
 #[derive(Debug)]
-pub struct PotentialUnionFind<Element> {
-    par: Vec<usize>,
+pub struct PotentialUnionFind<T, G: Group<T>> {
+    parent: Vec<usize>,
     rank: Vec<usize>,
-    ptn: Vec<Element>,
+    potential: Vec<T>,
+    phantom: PhantomData<G>,
 }
 
-impl<Element> PotentialUnionFind<Element> {
-    pub fn new<G: Group<Element>>(n: usize) -> Self {
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Diff<T> {
+    Ok(T),
+    Ambiguous,
+}
+
+#[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Merge {
+    Done,
+    Redundant,
+}
+
+impl<T, G: Group<T>> PotentialUnionFind<T, G> {
+    pub fn new(n: usize) -> Self {
         Self {
-            par: (0..n).collect(),
-            rank: vec![1; n],
-            ptn: (0..n).map(|_| G::identity()).collect(),
+            parent: (0..n).collect(),
+            rank: vec![0; n],
+            potential: (0..n).map(|_| G::identity()).collect(),
+            phantom: PhantomData,
         }
     }
-    pub fn root<G: Group<Element>>(&mut self, i: usize) -> usize {
-        if self.par[i] == i {
+    pub fn root(&mut self, i: usize) -> usize {
+        if self.parent[i] == i {
             i
         } else {
-            let p = self.par[i];
-            let r = self.root::<G>(p);
-            self.ptn[i] = G::apply(&self.ptn[p], &self.ptn[i]);
-            self.par[i] = r;
+            let p = self.parent[i];
+            let r = self.root(p);
+            self.potential[i] = G::operate(&self.potential[p], &self.potential[i]);
+            self.parent[i] = r;
             r
         }
     }
-    pub fn diff<G: Group<Element>>(&mut self, i: usize, j: usize) -> Element {
-        let p = self.root::<G>(i);
-        let q = self.root::<G>(j);
-        G::apply(&self.ptn[q], &(G::inv(&self.ptn[p])))
+    pub fn diff(&mut self, i: usize, j: usize) -> Diff<T> {
+        let p = self.root(i);
+        let q = self.root(j);
+        if p == q {
+            Diff::Ok(G::operate(
+                &self.potential[j],
+                &(G::inverse(&self.potential[i])),
+            ))
+        } else {
+            Diff::Ambiguous
+        }
     }
-    pub fn merge<G: Group<Element>>(&mut self, i: usize, j: usize, x: &Element) {}
+    pub fn merge(&mut self, i: usize, j: usize, x: &T) -> Merge {
+        let p = self.root(i);
+        let q = self.root(j);
+        if p == q {
+            Merge::Redundant
+        } else {
+            let (p, q, i, j, x) = if self.rank[p] > self.rank[q] {
+                (p, q, i, j, G::operate(&G::identity(), x))
+            } else {
+                (q, p, j, i, G::inverse(x))
+            };
+            self.rank[p] += 1;
+            self.parent[q] = p;
+            self.potential[q] = G::operate(
+                &G::operate(&self.potential[i], &x),
+                &G::inverse(&self.potential[j]),
+            );
+            Merge::Done
+        }
+    }
 }
+
+use std::marker::PhantomData;
+
+use super::algebraic::*;
