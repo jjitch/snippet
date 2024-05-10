@@ -1,4 +1,4 @@
-use competitive::potential_union_find::*;
+use snippet::potential_union_find::*;
 
 #[test]
 fn s() {

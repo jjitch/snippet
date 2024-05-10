@@ -35,7 +35,7 @@ where
 /// * `arr` needs to be sorted by `cmp`
 /// ## example
 /// ```
-/// use competitive::binary_search::*;
+/// use snippet::binary_search::*;
 /// fn simple_lower_bound_by_1() {
 ///     assert_eq!(
 ///         lower_bound_by(&[0, 4, 4, 4, 4, 4, 6],

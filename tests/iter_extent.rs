@@ -1,5 +1,5 @@
 mod iter_extent_test {
-    use competitive::iter_extent::*;
+    use snippet::iter_extent::*;
     #[test]
     fn count_1() {
         assert_eq!(

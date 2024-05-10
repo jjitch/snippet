@@ -1,7 +1,7 @@
 mod compress_crd_test {
     use std::collections::BTreeMap;
 
-    use competitive::compress_crd::*;
+    use snippet::compress_crd::*;
     #[test]
     fn compress_1() {
         let v = vec![1 << 60, 1 << 40, 1 << 60, 0, 1 << 40, 1 << 60, 1 << 50];

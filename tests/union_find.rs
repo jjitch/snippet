@@ -1,5 +1,5 @@
 mod union_find_test {
-    use competitive::union_find::*;
+    use snippet::union_find::*;
     #[test]
     fn unite_1() {
         let mut dsu = UnionFind::new(10);

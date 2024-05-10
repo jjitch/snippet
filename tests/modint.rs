@@ -1,5 +1,5 @@
 mod modint_test {
-    use competitive::modint::*;
+    use snippet::modint::*;
     #[test]
     fn add_1() {
         let m = Mint::new(4);

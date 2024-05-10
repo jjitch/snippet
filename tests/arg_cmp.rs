@@ -1,5 +1,5 @@
 mod arg_cmp_test {
-    use competitive::arg_cmp::*;
+    use snippet::arg_cmp::*;
     use std::cmp::Ordering::*;
     #[test]
     fn bool_cmp() {

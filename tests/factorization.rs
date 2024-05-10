@@ -1,5 +1,5 @@
 mod factorization_test {
-    use competitive::factorization::*;
+    use snippet::factorization::*;
     use std::collections::BTreeMap;
     fn vec2map(v: Vec<(i64, i64)>) -> BTreeMap<i64, i64> {
         v.into_iter().collect()

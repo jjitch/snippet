@@ -1,5 +1,5 @@
 mod segment_tree_test {
-    use competitive::segment_tree::*;
+    use snippet::segment_tree::*;
     #[test]
     fn add_1() {
         let mut segtree = SegmentTree::<Add>::new(10);

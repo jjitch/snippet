@@ -1,5 +1,5 @@
 mod binary_search_test {
-    use competitive::binary_search::*;
+    use snippet::binary_search::*;
 
     // tests for generic binary search
     #[test]

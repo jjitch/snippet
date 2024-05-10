@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod indexer_test {
-    use competitive::indexer::*;
+    use snippet::indexer::*;
     #[test]
     fn test1() {
         let indexer = Indexer::new((10, 10), &ADJACENT);

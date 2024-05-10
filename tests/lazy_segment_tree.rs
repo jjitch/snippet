@@ -1,5 +1,5 @@
 mod lazy_segtree_test {
-    use competitive::lazy_segtree::*;
+    use snippet::lazy_segtree::*;
     #[test]
     fn add_update() {
         let mut lst = LazySegmentTree::<Add, Update>::new(8);

@@ -1,5 +1,5 @@
 mod factors_test {
-    use competitive::factors::*;
+    use snippet::factors::*;
     #[test]
     fn twenty_four() {
         let mut facts = factors(24);
