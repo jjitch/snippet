@@ -187,3 +187,44 @@ impl Modulus for Mod998244353 {
 pub fn mint(x: i64) -> Mint {
     Mint::new(x)
 }
+
+use super::algebraic::*;
+
+struct ModAdd;
+
+impl Magma<Mint> for ModAdd {
+    fn operate(x: &Mint, y: &Mint) -> Mint {
+        *x + *y
+    }
+}
+
+impl Identity<Mint> for ModAdd {
+    fn identity() -> Mint {
+        mint(0)
+    }
+}
+
+impl Inverse<Mint> for ModAdd {
+    fn inverse(x: &Mint) -> Mint {
+        mint(0) - *x
+    }
+}
+
+struct ModMul;
+
+impl Magma<Mint> for ModMul {
+    fn operate(x: &Mint, y: &Mint) -> Mint {
+        *x * *y
+    }
+}
+
+impl Identity<Mint> for ModMul {
+    fn identity() -> Mint {
+        mint(1)
+    }
+}
+impl Inverse<Mint> for ModMul {
+    fn inverse(x: &Mint) -> Mint {
+        x.inv()
+    }
+}
