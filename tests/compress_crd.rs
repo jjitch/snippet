@@ -1,17 +1,16 @@
 mod compress_crd_test {
-    use std::collections::BTreeMap;
-
     use snippet::compress_crd::*;
     #[test]
     fn compress_1() {
-        let v = vec![1 << 60, 1 << 40, 1 << 60, 0, 1 << 40, 1 << 60, 1 << 50];
-        let (uncomp, compress) = compress_crd(&v);
-        assert_eq!(uncomp, vec![0, 1 << 40, 1 << 50, 1 << 60]);
-        assert_eq!(
-            compress,
-            vec![(0, 0), (1 << 40, 1), (1 << 50, 2), (1 << 60, 3)]
-                .into_iter()
-                .collect::<BTreeMap<i64, usize>>()
-        );
+        let v = vec![2, 43, 2, 6, 23, 6];
+        let cc = CC::new(&v);
+        assert_eq!(cc.i2c(0), 2);
+        assert_eq!(cc.i2c(1), 6);
+        assert_eq!(cc.i2c(2), 23);
+        assert_eq!(cc.i2c(3), 43);
+        assert_eq!(cc.c2i(&2), 0);
+        assert_eq!(cc.c2i(&6), 1);
+        assert_eq!(cc.c2i(&23), 2);
+        assert_eq!(cc.c2i(&43), 3);
     }
 }
