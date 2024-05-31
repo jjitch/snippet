@@ -30,13 +30,21 @@ impl<T, M: Monoid<T>> SegmentTree<T, M> {
             M::operate(&val_left, &val_right)
         }
     }
-    pub fn set(&mut self, i: usize, val: T) {
-        let mut i = i + self.n - 1;
-        self.table[i] = M::operate(&self.table[i], &val);
+    fn propagate(&mut self, mut i: usize) {
         while i > 0 {
             i = (i - 1) / 2;
             self.table[i] = M::operate(&self.table[2 * i + 1], &self.table[2 * i + 2]);
         }
+    }
+    pub fn operate_asssign(&mut self, i: usize, val: T) {
+        let i = i + self.n - 1;
+        self.table[i] = M::operate(&self.table[i], &val);
+        self.propagate(i);
+    }
+    pub fn asssign(&mut self, i: usize, val: T) {
+        let i = i + self.n - 1;
+        self.table[i] = val;
+        self.propagate(i);
     }
 }
 

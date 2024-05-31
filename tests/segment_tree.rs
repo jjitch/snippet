@@ -4,9 +4,9 @@ mod segment_tree_test {
     #[test]
     fn add_1() {
         let mut segtree = SegmentTree::<_, Add>::new(10);
-        segtree.set(0, 10);
-        segtree.set(1, 10);
-        segtree.set(3, 10);
+        segtree.asssign(0, 10);
+        segtree.asssign(1, 10);
+        segtree.asssign(3, 10);
         assert_eq!(segtree.get(1..2), 10);
         assert_eq!(segtree.get(1..3), 10);
         assert_eq!(segtree.get(1..4), 20);
@@ -56,7 +56,7 @@ mod segment_tree_test {
         assert_eq!(segtree.get(0..6), 2);
         assert_eq!(segtree.get(2..4), 2);
         // [0, 25, 10, 24, 0, 12]
-        segtree.set(1, 25);
+        segtree.asssign(1, 25);
         assert_eq!(segtree.get(1..3), 5);
         assert_eq!(segtree.get(0..6), 1);
     }
