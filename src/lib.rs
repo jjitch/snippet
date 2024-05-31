@@ -17,3 +17,4 @@ pub mod scc;
 pub mod segment_tree;
 pub mod union_find;
 pub mod vc;
+pub mod xgcd;
