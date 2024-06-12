@@ -1,10 +1,9 @@
-pub struct SegmentTree<T, M: Monoid<T>> {
-    table: Vec<T>,
+pub struct SegmentTree<M: Monoid> {
+    table: Vec<M::Element>,
     n: usize,
-    phantom: std::marker::PhantomData<M>,
 }
 
-impl<T, M: Monoid<T>> SegmentTree<T, M> {
+impl<M: Monoid> SegmentTree<M> {
     pub fn new(n: usize) -> Self {
         let mut x = 1;
         while n >= x {
@@ -13,13 +12,19 @@ impl<T, M: Monoid<T>> SegmentTree<T, M> {
         Self {
             table: (0..4 * n).map(|_| M::identity()).collect(),
             n: x,
-            phantom: std::marker::PhantomData,
         }
     }
-    pub fn get(&self, range: std::ops::Range<usize>) -> T {
+    pub fn get(&self, range: std::ops::Range<usize>) -> M::Element {
         self.sub_query(range.start, range.end, 0, 0, self.n)
     }
-    fn sub_query(&self, i: usize, j: usize, indicator: usize, left: usize, right: usize) -> T {
+    fn sub_query(
+        &self,
+        i: usize,
+        j: usize,
+        indicator: usize,
+        left: usize,
+        right: usize,
+    ) -> M::Element {
         if right <= i || j <= left {
             M::identity()
         } else if i <= left && right <= j {
@@ -36,55 +41,36 @@ impl<T, M: Monoid<T>> SegmentTree<T, M> {
             self.table[i] = M::operate(&self.table[2 * i + 1], &self.table[2 * i + 2]);
         }
     }
-    pub fn operate_asssign(&mut self, i: usize, val: T) {
+    pub fn operate_asssign(&mut self, i: usize, val: M::Element) {
         let i = i + self.n - 1;
         self.table[i] = M::operate(&self.table[i], &val);
         self.propagate(i);
     }
-    pub fn asssign(&mut self, i: usize, val: T) {
+    pub fn asssign(&mut self, i: usize, val: M::Element) {
         let i = i + self.n - 1;
         self.table[i] = val;
         self.propagate(i);
     }
 }
 
-impl<T: std::fmt::Debug, M: Monoid<T>> std::fmt::Debug for SegmentTree<T, M> {
+impl<T: std::fmt::Debug, M: Monoid<Element = T>> std::fmt::Debug for SegmentTree<M> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?}", self.table)
     }
 }
 
-pub struct SegmentTreeBuilder<T, M: Monoid<T>> {
-    table: Vec<T>,
-    n: usize,
-    phantom: std::marker::PhantomData<M>,
-}
-
-impl<T, M: Monoid<T>> SegmentTreeBuilder<T, M> {
-    pub fn new(n: usize) -> Self {
-        let mut x = 1;
-        while n >= x {
-            x *= 2;
+impl<M: Monoid> FromIterator<M::Element> for SegmentTree<M> {
+    fn from_iter<T: IntoIterator<Item = M::Element>>(iter: T) -> Self {
+        let v = iter.into_iter().collect::<Vec<_>>();
+        let n = v.len();
+        let mut sg = SegmentTree::<M>::new(n);
+        for i in 0..n {
+            sg.table[i + sg.n - 1] = M::operate(&sg.table[i + sg.n - 1], &v[i]);
         }
-        Self {
-            table: (0..4 * n).map(|_| M::identity()).collect(),
-            n: x,
-            phantom: std::marker::PhantomData,
+        for i in (0..sg.n - 1).rev() {
+            sg.table[i] = M::operate(&sg.table[2 * i + 1], &sg.table[2 * i + 2]);
         }
-    }
-    pub fn set(mut self, i: usize, val: &T) -> Self {
-        self.table[i + self.n - 1] = M::operate(&self.table[i + self.n - 1], &val);
-        self
-    }
-    pub fn biuld(mut self) -> SegmentTree<T, M> {
-        for i in (0..self.n - 1).rev() {
-            self.table[i] = M::operate(&self.table[2 * i + 1], &self.table[2 * i + 2]);
-        }
-        SegmentTree::<T, M> {
-            table: self.table,
-            n: self.n,
-            phantom: std::marker::PhantomData,
-        }
+        sg
     }
 }
 
