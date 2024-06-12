@@ -4,7 +4,7 @@ where
 {
     let mut high = range.end;
     let mut low = range.start;
-    if !judge(high - 1) {
+    if high == 0 || !judge(high - 1) {
         high
     } else if judge(low) {
         low
@@ -21,6 +21,13 @@ where
     }
 }
 
+/// # Example
+/// ```
+/// use snippet::binary_search::*;
+/// assert_eq!(lower_bound(&[0, 0, 2, 3], 2), 2);
+/// assert_eq!(lower_bound(&[0, 0, 2, 3], 0), 0);
+/// assert_eq!(lower_bound(&[0, 0, 2, 3], 4), 4);
+/// ```
 pub fn lower_bound<T>(arr: &[T], val: T) -> usize
 where
     T: std::cmp::Ord,
