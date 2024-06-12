@@ -1,9 +1,21 @@
-#[derive(Debug)]
-pub struct PotentialUnionFind<T, G: Group<T>> {
+pub struct PotentialUnionFind<G: Group> {
     parent: Vec<usize>,
     rank: Vec<usize>,
-    potential: Vec<T>,
-    phantom: PhantomData<G>,
+    potential: Vec<G::Element>,
+}
+
+impl<D, G> std::fmt::Debug for PotentialUnionFind<G>
+where
+    D: Debug,
+    G: Group<Element = D>,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PotentialUnionFind")
+            .field("parent", &self.parent)
+            .field("rank", &self.rank)
+            .field("potential", &self.potential)
+            .finish()
+    }
 }
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord)]
@@ -18,13 +30,12 @@ pub enum Merge {
     Redundant,
 }
 
-impl<T, G: Group<T>> PotentialUnionFind<T, G> {
+impl<G: Group> PotentialUnionFind<G> {
     pub fn new(n: usize) -> Self {
         Self {
             parent: (0..n).collect(),
             rank: vec![0; n],
             potential: (0..n).map(|_| G::identity()).collect(),
-            phantom: PhantomData,
         }
     }
     pub fn root(&mut self, i: usize) -> usize {
@@ -38,7 +49,7 @@ impl<T, G: Group<T>> PotentialUnionFind<T, G> {
             r
         }
     }
-    pub fn diff(&mut self, i: usize, j: usize) -> Diff<T> {
+    pub fn diff(&mut self, i: usize, j: usize) -> Diff<G::Element> {
         let p = self.root(i);
         let q = self.root(j);
         if p == q {
@@ -50,7 +61,7 @@ impl<T, G: Group<T>> PotentialUnionFind<T, G> {
             Diff::Ambiguous
         }
     }
-    pub fn merge(&mut self, i: usize, j: usize, x: &T) -> Merge {
+    pub fn merge(&mut self, i: usize, j: usize, x: &G::Element) -> Merge {
         let p = self.root(i);
         let q = self.root(j);
         if p == q {
@@ -72,6 +83,6 @@ impl<T, G: Group<T>> PotentialUnionFind<T, G> {
     }
 }
 
-use std::marker::PhantomData;
+use std::fmt::Debug;
 
 use super::algebraic::*;

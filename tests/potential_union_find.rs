@@ -3,7 +3,7 @@ mod potential_union_find_test {
     use snippet::{algebraic::*, potential_union_find::*};
     #[test]
     fn aoj() {
-        let mut puf = PotentialUnionFind::<_, mount::Add>::new(5);
+        let mut puf = PotentialUnionFind::<Add>::new(5);
         puf.merge(0, 2, &5);
         println!("{:?}", puf);
         puf.merge(1, 2, &3);
