@@ -68,6 +68,16 @@ impl From<i64> for MinElm {
     }
 }
 
+impl std::ops::Add for MinElm {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (MinElm::Finite(x), MinElm::Finite(y)) => MinElm::Finite(x + y),
+            _ => MinElm::Infinite,
+        }
+    }
+}
+
 impl MinElm {
     pub fn unwrap(&self) -> i64 {
         match self {
@@ -123,6 +133,16 @@ impl std::fmt::Debug for MaxElm {
 impl From<i64> for MaxElm {
     fn from(value: i64) -> Self {
         Self::Finite(value)
+    }
+}
+
+impl std::ops::Add for MaxElm {
+    type Output = Self;
+    fn add(self, rhs: Self) -> Self::Output {
+        match (self, rhs) {
+            (MaxElm::Finite(x), MaxElm::Finite(y)) => MaxElm::Finite(x + y),
+            _ => MaxElm::NegInf,
+        }
     }
 }
 
@@ -200,5 +220,53 @@ impl<T: Clone> Act for Assign<T> {
     }
     fn proportional(m: &Self::Element, _: usize) -> Self::Element {
         m.clone()
+    }
+}
+
+pub struct GeneralAdd<T>(std::marker::PhantomData<fn() -> T>);
+
+impl Monoid for GeneralAdd<MinElm> {
+    type Element = MinElm;
+    fn identity() -> Self::Element {
+        MinElm::Finite(0)
+    }
+    fn operate(x: &Self::Element, y: &Self::Element) -> Self::Element {
+        *x + *y
+    }
+}
+
+impl Act for GeneralAdd<MinElm> {
+    type Target = MinElm;
+    fn act(x: &Self::Target, m: &Self::Element) -> Self::Target {
+        *x + *m
+    }
+    fn proportional(m: &Self::Element, n: usize) -> Self::Element {
+        match m {
+            MinElm::Finite(x) => MinElm::Finite(*x * n as i64),
+            _ => MinElm::Infinite,
+        }
+    }
+}
+
+impl Monoid for GeneralAdd<MaxElm> {
+    type Element = MaxElm;
+    fn identity() -> Self::Element {
+        MaxElm::Finite(0)
+    }
+    fn operate(x: &Self::Element, y: &Self::Element) -> Self::Element {
+        *x + *y
+    }
+}
+
+impl Act for GeneralAdd<MaxElm> {
+    type Target = MaxElm;
+    fn act(x: &Self::Target, m: &Self::Element) -> Self::Target {
+        *x + *m
+    }
+    fn proportional(m: &Self::Element, n: usize) -> Self::Element {
+        match m {
+            MaxElm::Finite(x) => MaxElm::Finite(*x * n as i64),
+            _ => MaxElm::NegInf,
+        }
     }
 }
