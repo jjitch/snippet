@@ -1,203 +1,138 @@
-pub struct LazySegmentTree<M, A>
+pub struct LazySegmentTree<M: Monoid, A: Act> {
+    vals: Vec<M::Element>,
+    lazy: Vec<A::Element>,
+    n: usize,
+}
+
+impl<M, A> std::fmt::Debug for LazySegmentTree<M, A>
 where
     M: Monoid,
-    A: Action,
+    M::Element: std::fmt::Debug,
+    A: Act,
+    A::Element: std::fmt::Debug,
 {
-    vals: Vec<i64>,
-    lazy: Vec<i64>,
-    n: usize,
-    pm: std::marker::PhantomData<fn() -> M>,
-    pa: std::marker::PhantomData<fn() -> A>,
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        use itertools::Itertools;
+        writeln!(f, "LazySegmentTree n={}", &self.n)?;
+        let (mut l, mut w) = (0, 1);
+        while w <= self.n {
+            writeln!(
+                f,
+                "[{}]",
+                (l..l + w)
+                    .map(|i| format!("{:?}({:?})", &self.vals[i], &self.lazy[i]))
+                    .join(", ")
+            )?;
+            l <<= 1;
+            l += 1;
+            w <<= 1;
+        }
+        Ok(())
+    }
 }
 
 impl<M, A> LazySegmentTree<M, A>
 where
     M: Monoid,
-    A: Action,
+    A: Act<Target = M::Element>,
 {
     pub fn new(n: usize) -> Self {
         let mut x = 1;
-        while n >= x {
+        while n > x {
             x *= 2;
         }
         LazySegmentTree {
-            vals: vec![M::identity(); 4 * n],
-            lazy: vec![A::identity(); 4 * n],
+            vals: (0..4 * n).map(|_| M::identity()).collect(),
+            lazy: (0..4 * n).map(|_| A::identity()).collect(),
             n: x,
-            pm: std::marker::PhantomData,
-            pa: std::marker::PhantomData,
         }
     }
-    pub fn query(&mut self, range: std::ops::Range<usize>) -> i64 {
-        self.sub_query(range.start, range.end, 0, 0, self.n)
+    pub fn operate(&mut self, range: std::ops::Range<usize>) -> M::Element {
+        self.sub_operate(range.start, range.end, 0, 0, self.n)
     }
-    pub fn action(&mut self, range: std::ops::Range<usize>, val: i64) {
-        self.sub_action(range.start, range.end, val, 0, 0, self.n);
-    }
-    fn sub_query(&mut self, i: usize, j: usize, k: usize, left: usize, right: usize) -> i64 {
+    fn sub_operate(
+        &mut self,
+        i: usize,
+        j: usize,
+        k: usize,
+        left: usize,
+        right: usize,
+    ) -> M::Element {
         self.eval(k, right - left);
         if right <= i || j <= left {
             M::identity()
         } else if i <= left && right <= j {
-            self.vals[k]
+            M::operate(&self.vals[k], &M::identity())
         } else {
-            let val_left = self.sub_query(i, j, k * 2 + 1, left, (left + right) / 2);
-            let val_right = self.sub_query(i, j, k * 2 + 2, (left + right) / 2, right);
-            M::apply(val_left, val_right)
+            let val_left = self.sub_operate(i, j, k * 2 + 1, left, (left + right) / 2);
+            let val_right = self.sub_operate(i, j, k * 2 + 2, (left + right) / 2, right);
+            M::operate(&val_left, &val_right)
         }
     }
-    fn sub_action(&mut self, i: usize, j: usize, val: i64, k: usize, left: usize, right: usize) {
+    pub fn act(&mut self, range: std::ops::Range<usize>, val: A::Element) {
+        self.sub_action(range.start, range.end, &val, 0, 0, self.n);
+    }
+    fn sub_action(
+        &mut self,
+        i: usize,
+        j: usize,
+        val: &A::Element,
+        k: usize,
+        left: usize,
+        right: usize,
+    ) {
         self.eval(k, right - left);
         if i <= left && right <= j {
-            self.lazy[k] = A::apply(self.lazy[k], val);
+            self.lazy[k] = A::operate(&self.lazy[k], val);
             self.eval(k, right - left);
         } else if i < right && left < j {
             self.sub_action(i, j, val, k * 2 + 1, left, (left + right) / 2);
             self.sub_action(i, j, val, k * 2 + 2, (left + right) / 2, right);
-            self.vals[k] = M::apply(self.vals[k * 2 + 1], self.vals[k * 2 + 2]);
+            self.vals[k] = M::operate(&self.vals[k * 2 + 1], &self.vals[k * 2 + 2]);
         }
     }
     fn eval(&mut self, k: usize, length: usize) {
-        if self.lazy[k] == A::identity() {
-            return;
-        }
         if k < self.n - 1 {
-            self.lazy[k * 2 + 1] = A::apply(self.lazy[k * 2 + 1], self.lazy[k]);
-            self.lazy[k * 2 + 2] = A::apply(self.lazy[k * 2 + 2], self.lazy[k]);
+            self.lazy[k * 2 + 1] = A::operate(&self.lazy[k * 2 + 1], &self.lazy[k]);
+            self.lazy[k * 2 + 2] = A::operate(&self.lazy[k * 2 + 2], &self.lazy[k]);
         }
-        self.vals[k] = A::action(self.vals[k], M::propotional(self.lazy[k], length));
+        self.vals[k] = A::act(&self.vals[k], &A::proportional(&self.lazy[k], length));
         self.lazy[k] = A::identity();
     }
-    pub fn set(&mut self, x: usize, val: i64) -> &mut Self {
+    pub fn eval_all(&mut self) {
+        for i in 0..2 * self.n - 1 {
+            self.eval(
+                i,
+                self.n >> ((0usize.leading_zeros() - (i + 1).leading_zeros()) as usize - 1),
+            );
+        }
+    }
+    pub fn set(&mut self, x: usize, val: M::Element) -> &mut Self {
         self.vals[x + self.n - 1] = val;
         self
     }
     pub fn biuld(&mut self) {
         for i in (0..=self.n - 2).rev() {
-            self.vals[i] = M::apply(self.vals[2 * i + 1], self.vals[2 * i + 2]);
+            self.vals[i] = M::operate(&self.vals[2 * i + 1], &self.vals[2 * i + 2]);
         }
     }
 }
 
-pub trait Monoid {
-    fn apply(x: i64, y: i64) -> i64;
-    fn propotional(x: i64, length: usize) -> i64;
-    fn identity() -> i64;
-}
-
-pub struct Gcd;
-impl Gcd {
-    fn gcd(x: i64, y: i64) -> i64 {
-        if y == 0 {
-            x
-        } else {
-            Self::gcd(y, x % y)
+impl<M: Monoid, A: Act<Target = M::Element>> std::iter::FromIterator<M::Element>
+    for LazySegmentTree<M, A>
+{
+    fn from_iter<T: IntoIterator<Item = M::Element>>(iter: T) -> Self {
+        let v = iter.into_iter().collect::<Vec<_>>();
+        let n = v.len();
+        let mut sg = LazySegmentTree::<M, A>::new(n);
+        for (i, e) in v.into_iter().enumerate() {
+            sg.vals[i + sg.n - 1] = e;
         }
-    }
-}
-impl Monoid for Gcd {
-    fn apply(x: i64, y: i64) -> i64 {
-        Self::gcd(x, y)
-    }
-    fn propotional(x: i64, _length: usize) -> i64 {
-        x
-    }
-    fn identity() -> i64 {
-        0
-    }
-}
-pub struct Add;
-
-impl Monoid for Add {
-    fn apply(x: i64, y: i64) -> i64 {
-        x + y
-    }
-    fn propotional(x: i64, length: usize) -> i64 {
-        x * length as i64
-    }
-    fn identity() -> i64 {
-        0
-    }
-}
-
-pub struct Min;
-
-impl Monoid for Min {
-    fn apply(x: i64, y: i64) -> i64 {
-        std::cmp::min(x, y)
-    }
-    fn propotional(x: i64, _length: usize) -> i64 {
-        x
-    }
-    fn identity() -> i64 {
-        1 << 60
-    }
-}
-pub struct Max;
-
-impl Monoid for Max {
-    fn apply(x: i64, y: i64) -> i64 {
-        std::cmp::max(x, y)
-    }
-    fn propotional(x: i64, _length: usize) -> i64 {
-        x
-    }
-    fn identity() -> i64 {
-        -(1 << 60)
-    }
-}
-pub struct Update;
-
-impl Monoid for Update {
-    fn apply(x: i64, y: i64) -> i64 {
-        if y != Self::identity() {
-            y
-        } else {
-            x
+        for i in (0..sg.n - 1).rev() {
+            sg.vals[i] = M::operate(&sg.vals[2 * i + 1], &sg.vals[2 * i + 1]);
         }
-    }
-    fn propotional(x: i64, _length: usize) -> i64 {
-        x
-    }
-    fn identity() -> i64 {
-        1 << 60
+        sg
     }
 }
 
-pub trait Action: Monoid {
-    fn action(x: i64, y: i64) -> i64;
-}
-
-impl Action for Add {
-    fn action(x: i64, y: i64) -> i64 {
-        x + y
-    }
-}
-
-impl Action for Max {
-    fn action(x: i64, y: i64) -> i64 {
-        i64::max(x, y)
-    }
-}
-
-impl Action for Min {
-    fn action(x: i64, y: i64) -> i64 {
-        i64::min(x, y)
-    }
-}
-
-impl Action for Gcd {
-    fn action(x: i64, y: i64) -> i64 {
-        Self::gcd(x, y)
-    }
-}
-
-impl Action for Update {
-    fn action(x: i64, y: i64) -> i64 {
-        if y != <Self as Monoid>::identity() {
-            y
-        } else {
-            x
-        }
-    }
-}
+use super::algebraic::*;
