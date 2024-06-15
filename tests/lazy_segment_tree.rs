@@ -1,6 +1,7 @@
 mod lazy_segtree_test {
     use snippet::algebraic::*;
     use snippet::lazy_segtree::*;
+    use snippet::modint::*;
 
     #[test]
     fn min_update() {
@@ -48,5 +49,16 @@ mod lazy_segtree_test {
         assert_eq!(lst.operate(0..8).unwrap(), 1.into());
         assert_eq!(lst.operate(4..8).unwrap(), 1.into());
         assert_eq!(lst.operate(8..8), Min::identity());
+    }
+
+    #[test]
+    fn mod_mul_mul() {
+        let mut lst = LazySegmentTree::<ModMul, ModMul>::new(8);
+        lst.act(0..4, mint(4)); // 4 4 4 4 1 1 1 1
+        println!("{:?}", lst);
+        lst.act(1..6, mint(3)); // 4 12 12 12 3 3 1 1
+        println!("{:?}", lst);
+        assert_eq!(lst.operate(3..5), mint(36));
+        assert_eq!(lst.operate(0..4), mint(6912));
     }
 }

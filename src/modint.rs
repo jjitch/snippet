@@ -190,41 +190,58 @@ pub fn mint(x: i64) -> Mint {
 
 use super::algebraic::*;
 
-struct ModAdd;
+pub struct ModAdd;
 
-impl Magma<Mint> for ModAdd {
-    fn operate(x: &Mint, y: &Mint) -> Mint {
+impl Monoid for ModAdd {
+    type Element = Mint;
+    fn identity() -> Self::Element {
+        mint(0)
+    }
+    fn operate(x: &Self::Element, y: &Self::Element) -> Self::Element {
         *x + *y
     }
 }
 
-impl Identity<Mint> for ModAdd {
-    fn identity() -> Mint {
-        mint(0)
+impl Group for ModAdd {
+    fn inverse(x: &Self::Element) -> Self::Element {
+        mint(0) - (*x)
     }
 }
 
-impl Inverse<Mint> for ModAdd {
-    fn inverse(x: &Mint) -> Mint {
-        mint(0) - *x
+impl Act for ModAdd {
+    type Target = Mint;
+    fn act(m: &Self::Target, x: &Self::Element) -> Self::Target {
+        *m + *x
+    }
+    fn proportional(m: &Self::Element, n: usize) -> Self::Element {
+        *m * mint(n as i64)
     }
 }
 
-struct ModMul;
+pub struct ModMul;
 
-impl Magma<Mint> for ModMul {
-    fn operate(x: &Mint, y: &Mint) -> Mint {
+impl Monoid for ModMul {
+    type Element = Mint;
+    fn identity() -> Self::Element {
+        mint(1)
+    }
+    fn operate(x: &Self::Element, y: &Self::Element) -> Self::Element {
         *x * *y
     }
 }
 
-impl Identity<Mint> for ModMul {
-    fn identity() -> Mint {
-        mint(1)
+impl Act for ModMul {
+    type Target = Mint;
+    fn act(x: &Self::Target, m: &Self::Element) -> Self::Target {
+        *x * *m
+    }
+    fn proportional(m: &Self::Element, n: usize) -> Self::Element {
+        m.pow(n as i64)
     }
 }
-impl Inverse<Mint> for ModMul {
-    fn inverse(x: &Mint) -> Mint {
+
+impl Group for ModMul {
+    fn inverse(x: &Self::Element) -> Self::Element {
         x.inv()
     }
 }
