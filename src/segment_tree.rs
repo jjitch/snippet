@@ -59,7 +59,7 @@ impl<T: std::fmt::Debug, M: Monoid<Element = T>> std::fmt::Debug for SegmentTree
     }
 }
 
-impl<M: Monoid> FromIterator<M::Element> for SegmentTree<M> {
+impl<M: Monoid> std::iter::FromIterator<M::Element> for SegmentTree<M> {
     fn from_iter<T: IntoIterator<Item = M::Element>>(iter: T) -> Self {
         let v = iter.into_iter().collect::<Vec<_>>();
         let n = v.len();
