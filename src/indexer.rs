@@ -44,7 +44,7 @@ impl<'a> Iterator for ShiftedIndex<'a> {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug, Hash)]
 pub struct Position(pub usize, pub usize);
 
 use std::ops::{Index, IndexMut};
