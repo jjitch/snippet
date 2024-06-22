@@ -5,9 +5,26 @@ pub struct CC<T: Ord> {
 }
 
 impl<T: Ord + Clone> CC<T> {
-    pub fn new(it: impl std::iter::Iterator<Item = T>) -> Self {
-        let uncomp: Vec<_> = it
-            .collect::<std::collections::BTreeSet<T>>()
+    pub fn i2c(&self, i: usize) -> T {
+        self.m_i2c[i].clone()
+    }
+    pub fn c2i<C>(&self, c: &C) -> usize
+    where
+        C: ?Sized + Ord,
+        T: std::borrow::Borrow<C>,
+    {
+        *self.m_c2i.get(c).unwrap()
+    }
+    pub fn len(&self) -> usize {
+        self.m_c2i.len()
+    }
+}
+
+impl<Coord: Ord + Clone> std::iter::FromIterator<Coord> for CC<Coord> {
+    fn from_iter<T: IntoIterator<Item = Coord>>(iter: T) -> Self {
+        let uncomp: Vec<_> = iter
+            .into_iter()
+            .collect::<std::collections::BTreeSet<Coord>>()
             .into_iter()
             .collect();
         let compress = uncomp
@@ -20,20 +37,5 @@ impl<T: Ord + Clone> CC<T> {
             m_i2c: uncomp,
             m_c2i: compress,
         }
-    }
-    pub fn i2c(&self, i: usize) -> T {
-        self.m_i2c[i].clone()
-    }
-    pub fn c2i(&self, c: &T) -> usize {
-        *self.m_c2i.get(c).unwrap()
-    }
-    pub fn len(&self) -> usize {
-        self.m_c2i.len()
-    }
-}
-
-impl<Coord: Ord + Clone> std::iter::FromIterator<Coord> for CC<Coord> {
-    fn from_iter<T: IntoIterator<Item = Coord>>(iter: T) -> Self {
-        Self::new(iter.into_iter())
     }
 }
